@@ -1,0 +1,65 @@
+main {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+main div {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+label {
+    font-weight: 600;
+    color: #34495e;
+    margin-top: 10px;
+}
+
+input[type="text"], 
+input[type="number"] {
+    padding: 12px;
+    border: 2px solid #dfe6e9;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+    outline: none;
+}
+
+input:focus {
+    border-color: #3498db;
+}
+
+#intervallo_a, #intervallo_b {
+    margin-bottom: 10px;
+}
+
+/* Bottone di calcolo */
+button[onclick="bisezione()"] {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.1s;
+}
+
+button[onclick="bisezione()"]:hover {
+    background-color: #27ae60;
+}
+
+button[onclick="bisezione()"]:active {
+    transform: scale(0.98);
+}
+
+#keyboard {
+    margin-top: 5px;
+}

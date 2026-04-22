@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analisi numerica</title>
+
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/keyboard.css">
+</head>
+<body>
+  
+  <main>
+    <div>
+        <label for="function">funzione: </label>
+        <input type="text" id="function">
+        <div id="keyboard"></div>
+        <br><br>
+        <label for="intervallo_a">A:</label>
+        <input type="number" id="intervallo_a" step="0.0001" value="0">
+        <label for="intervallo_b">B: </label>
+        <input type="number" id="intervallo_b" step="0.0001" value="0">
+        <label for="precisione">precisione decimale</label>
+        <input type="number" id="precisione" step="1" min="1" value="1" max="9">
+        <br>
+        <button onclick="bisezione()">metodo bisezione</button>
+    </div>
+
+    <label for="res">risultato: </label>
+    <input type="number" id="res" value="" readonly hidden>
+  </main>
+
+  <script src="libraries/bisezione_module.js"></script>
+  <script src="script/utils.js"></script>
+  <script>
+    createScientificKeyboard();
+
+    async function bisezione() {
+      const func = document.getElementById("function").value;
+      const a = document.getElementById("intervallo_a").value;
+      const b = document.getElementById("intervallo_b").value;
+      const approx = document.getElementById("precisione").value;
+
+      const mathEngine = await loadNumericEngine();
+      try{
+        const risultato = mathEngine.bisezione(func, a, b, approx);
+
+        const res = document.getElementById("res");
+        res.value = risultato;
+        res.hidden = false;
+        
+      }catch(error){
+        alert("errore: " + mathEngine.getExceptionMessage(error)[1]);
+        return;
+      }
+    }
+
+  </script>
+</body>
+</html>

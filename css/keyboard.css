@@ -1,0 +1,30 @@
+.sci-kbd-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    max-width: 350px;
+    background: #2c3e50;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.sci-kbd-container button {
+    padding: 15px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background: #ecf0f1;
+    color: #2c3e50;
+}
+
+.sci-kbd-container button:hover {
+    background: #bdc3c7;
+}
+
+.btn-fn { background: #3498db !important; color: white !important; }
+.btn-op { background: #f39c12 !important; color: white !important; }
+.btn-x  { background: #27ae60 !important; color: white !important; }
+.btn-ac { background: #e74c3c !important; color: white !important; grid-column: span 2; }
+.btn-del{ background: #95a5a6 !important; color: white !important; }
