@@ -136,12 +136,10 @@ class Interval{
 //entry point
 double bisezione(std::string expression, double a, double b, int decimals_approx){
 
-    Function f; 
     Interval intervallo;
     try
     {
-        f = new Function(expression);
-        intervallo = new Interval(f, a, b);
+        intervallo = new Interval(new Function(expression), a, b);
     }
     catch(const std::exception& e)
     {
