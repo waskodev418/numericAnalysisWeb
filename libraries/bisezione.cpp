@@ -1,7 +1,7 @@
-#include <iostream>
 #include <string>
 #include "exprtk.hpp"       // Your math parser
 #include <emscripten/bind.h> // The Emscripten magic
+#include <stdexcept>
 
 using namespace emscripten;
 
