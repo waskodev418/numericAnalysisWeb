@@ -2,6 +2,7 @@
 #include "exprtk.hpp"       // Your math parser
 #include <emscripten/bind.h> // The Emscripten magic
 #include <stdexcept>
+#include <cmath>
 
 using namespace emscripten;
 
@@ -15,7 +16,7 @@ class Function {
         exprtk::parser<double> parser;
 
     public:
-        Function(std::string func_str) {
+        Function(std::string func_str) : x(0.0) {
             symbol_table.add_variable("x", x);
             symbol_table.add_constants();
             
@@ -43,7 +44,7 @@ class Function {
         double evaluate(double new_x) const {
             x = new_x;
             double res = expression.value();
-            return (!std::isnan(res)) ? res : throw std::domain_error("dominio non valido") ;
+            return (!std::isnan(res)) ? res : throw std::domain_error("dominio funzione non valido") ;
         }
 
         /*
@@ -52,8 +53,7 @@ class Function {
         */
         double evaluate_der1(double new_x) const {
             x = new_x;
-            double res = der1.value();
-            return (!std::isnan(res)) ? res : throw std::domain_error("dominio non valido") ;
+            return der1.value();
         }
 
         /*
@@ -62,8 +62,7 @@ class Function {
         */
         double evaluate_der2(double new_x) const {
             x = new_x;
-            double res = der2.value();
-            return (!std::isnan(res)) ? res : throw std::domain_error("dominio non valido") ;
+            return der2.value();
         }
 };
 
@@ -76,11 +75,12 @@ class Interval{
         bool is_not_unique_zero(double a, double b) const {  
             if (f.evaluate(a) * f.evaluate(b) > 0) return true; // I teorema
             else { 
+                double epsilon = 1e-9;
                 int n = 100;
 
                 int step = n;
-                double d = std::abs(b-a)/step;
-                double x0 = a;
+                double d = std::abs(b-a-2 * epsilon)/step;
+                double x0 = a + epsilon;
 
                 // II teorema -> monotonicità
                 int value = (f.evaluate_der1(x0)>0) ? 1 : -1;
@@ -92,10 +92,10 @@ class Interval{
                 step = n;
                 x0 = a;
                 // III teorema -> concavità
-                value = (f.evaluate_der2(x0)>0) ? 1 : -1;
+                value = (f.evaluate_der2(x0)>=0) ? 1 : -1;
                 while(step-- > 0){
                     x0+=d;
-                    if(value*f.evaluate_der2(x0) <= 0) return true;
+                    if(value*f.evaluate_der2(x0) < 0) return true;
                 }  
             }
             return false; 
