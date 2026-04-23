@@ -42,7 +42,8 @@ class Function {
         */
         double evaluate(double new_x) const {
             x = new_x;
-            return expression.value();
+            double res = expression.value();
+            return (!std::isnan(res)) ? res : throw std::domain_error("dominio non valido") ;
         }
 
         /*
@@ -51,7 +52,8 @@ class Function {
         */
         double evaluate_der1(double new_x) const {
             x = new_x;
-            return der1.value();
+            double res = der1.value();
+            return (!std::isnan(res)) ? res : throw std::domain_error("dominio non valido") ;
         }
 
         /*
@@ -60,7 +62,8 @@ class Function {
         */
         double evaluate_der2(double new_x) const {
             x = new_x;
-            return der2.value();
+            double res = der2.value();
+            return (!std::isnan(res)) ? res : throw std::domain_error("dominio non valido") ;
         }
 };
 
