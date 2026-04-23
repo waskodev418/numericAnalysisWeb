@@ -72,33 +72,32 @@ class Interval{
         double b;
         const Function &f;
 
-        bool is_not_unique_zero(double a, double b) const {  
-            if (f.evaluate(a) * f.evaluate(b) > 0) return true; // I teorema
+        void is_not_unique_zero(double a, double b) const {  
+            if (f.evaluate(a) * f.evaluate(b) >= 0) throw std::runtime_error("Teorema di Bolzano non soddisfatto"); // I teorema
             else { 
                 double epsilon = 1e-9;
                 int n = 100;
 
                 int step = n;
-                double d = std::abs(b-a-2 * epsilon)/step;
+                double d = (std::abs(b - a) -2 * epsilon)/step;
                 double x0 = a + epsilon;
 
                 // II teorema -> monotonicità
                 int value = (f.evaluate_der1(x0)>0) ? 1 : -1;
                 while(step-- > 0){
                     x0+=d;
-                    if(value*f.evaluate_der1(x0) <= 0) return true;
+                    if(value*f.evaluate_der1(x0) <= 0) throw std::runtime_error("Teorema della monotonicità non soddisfatto");
                 }
                 
                 step = n;
-                x0 = a;
+                x0 = a + epsilon;
                 // III teorema -> concavità
                 value = (f.evaluate_der2(x0)>=0) ? 1 : -1;
                 while(step-- > 0){
                     x0+=d;
-                    if(value*f.evaluate_der2(x0) < 0) return true;
+                    if(value*f.evaluate_der2(x0) < 0) throw std::runtime_error("Teorema della concavità non soddisfatto");
                 }  
             }
-            return false; 
         }
 
     public:
@@ -108,9 +107,7 @@ class Interval{
             this->a = x1;
             this->b = x2;
 
-            if(this->is_not_unique_zero(a, b)){
-                throw std::runtime_error("zero non univoco o non presente :/");
-            }
+            this->is_not_unique_zero(a, b);
         }
 
         double get_a() const{
@@ -144,6 +141,11 @@ class Interval{
         }
 };
 
+struct Result{
+    double x0;
+    int iterations;
+};
+
 /**
  * A function to round values to specific decimals
  * @param valore the value to round
@@ -162,14 +164,15 @@ double round_value(double value, int approx) {
  * @param b the other extreme of the interval [a;b]
  * @param approx the number of decimals to look for
  *  */
-double bisezione(std::string expression, double a, double b, int approx){
+Result bisezione(std::string expression, double a, double b, int approx){
 
     Function func(expression);
     Interval intervallo(func, a, b);
      
     double mid;
+    int iterations = 0;
     do {
-
+        iterations++;
         mid = (intervallo.get_b() + intervallo.get_a()) / 2;
         double f_mid = func.evaluate(mid);
         if(f_mid == 0) break;
@@ -179,11 +182,16 @@ double bisezione(std::string expression, double a, double b, int approx){
         round_value(intervallo.get_a(), approx) 
         != 
         round_value(intervallo.get_b(), approx)
-    );
-    return round_value(mid, approx);
+    ); 
+
+    return {round_value(mid, approx), iterations};
 }
 
 // --- THE EMSCRIPTEN BRIDGE ---
 EMSCRIPTEN_BINDINGS(bisezione_module) {
+    value_object<Result>("ResultSet")
+    .field("result", &Result::x0)
+    .field("steps", &Result::iterations);
+
     function("bisezione", &bisezione);
 }
