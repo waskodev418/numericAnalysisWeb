@@ -25,36 +25,19 @@
         <br>
         <button onclick="bisezione()">metodo bisezione</button>
     </div>
-
+    <hr>
     <label for="res">risultato: </label>
-    <input type="number" id="res" value="" readonly hidden>
+    <input type="number" class="res" id="res" value="" readonly hidden>
+    <br>
+    <label for="steps">passi: </label>
+    <input type="number" class="res" id="steps" value="" readonly hidden>
   </main>
 
   <script src="libraries/bisezione_module.js"></script>
+  <script src="script/math.js"></script>
   <script src="script/utils.js"></script>
   <script>
     createScientificKeyboard();
-
-    async function bisezione() {
-      const func = document.getElementById("function").value;
-      const a = document.getElementById("intervallo_a").value;
-      const b = document.getElementById("intervallo_b").value;
-      const approx = document.getElementById("precisione").value;
-
-      const mathEngine = await loadNumericEngine();
-      try{
-        const risultato = mathEngine.bisezione(func, a, b, approx);
-
-        const res = document.getElementById("res");
-        res.value = risultato;
-        res.hidden = false;
-        
-      }catch(error){
-        alert("errore: " + mathEngine.getExceptionMessage(error)[1]);
-        return;
-      }
-    }
-
   </script>
 </body>
 </html>
