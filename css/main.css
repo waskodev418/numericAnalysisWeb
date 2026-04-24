@@ -21,13 +21,18 @@ label {
 }
 
 input[type="text"], 
-input[type="number"] {
+input[type="number"],
+select {
     padding: 12px;
     border: 2px solid #dfe6e9;
     border-radius: 8px;
     font-size: 1rem;
     transition: border-color 0.3s;
     outline: none;
+}
+
+select {
+    background-color: rgb(207, 255, 207);
 }
 
 input.res {
@@ -45,7 +50,7 @@ input:focus {
 }
 
 /* Bottone di calcolo */
-button[onclick="bisezione()"] {
+button[onclick="exec()"] {
     margin-top: 20px;
     padding: 15px;
     background-color: #2ecc71;
@@ -58,11 +63,11 @@ button[onclick="bisezione()"] {
     transition: background 0.3s, transform 0.1s;
 }
 
-button[onclick="bisezione()"]:hover {
+button[onclick="exec()"]:hover {
     background-color: #27ae60;
 }
 
-button[onclick="bisezione()"]:active {
+button[onclick="exec()"]:active {
     transform: scale(0.98);
 }
 

@@ -4,14 +4,14 @@ function createScientificKeyboard(targetInputId = "function", cont = "keyboard")
     const inputField = document.getElementById(targetInputId);
     
     const keys = [
-        ['asin', 'asin(', 'btn-fn'], ['acos', 'acos(', 'btn-fn'], ['atan', 'atan(', 'btn-fn'], ['atan2', 'atan2(', 'btn-fn'],
+        ['asin', 'asin(', 'btn-fn'], ['acos', 'acos(', 'btn-fn'], ['atan', 'atan(', 'btn-fn'], ['e', 'exp(', 'btn-fn'],
         ['sin', 'sin(', 'btn-fn'], ['cos', 'cos(', 'btn-fn'], ['tan', 'tan(', 'btn-fn'], ['log', 'log(', 'btn-fn'],
         ['√', 'sqrt(', 'btn-fn'], ['^', '^', 'btn-fn'], ['(', '(', 'btn-fn'], [')', ')', 'btn-fn'],
         ['7', '7', ''], ['8', '8', ''], ['9', '9', ''], ['/', '/', 'btn-op'],
         ['4', '4', ''], ['5', '5', ''], ['6', '6', ''], ['*', '*', 'btn-op'],
         ['1', '1', ''], ['2', '2', ''], ['3', '3', ''], ['-', '-', 'btn-op'],
         ['0', '0', ''], ['.', '.', ''], ['x', 'x', 'btn-x'], ['+', '+', 'btn-op'],
-        ['AC', 'CLEAR', 'btn-ac'], ['⌫', 'BACKSPACE', 'btn-del'], [',', ',', 'btn-op']
+        ['AC', 'CLEAR', 'btn-ac'], ['⌫', 'BACKSPACE', 'btn-del'], ['π', 'pi', 'btn-fn']
     ];
 
     keys.forEach(([label, value, className]) => {

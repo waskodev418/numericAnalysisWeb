@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,17 +20,26 @@
         <input type="number" id="intervallo_a" step="0.0001" value="0">
         <label for="intervallo_b">B: </label>
         <input type="number" id="intervallo_b" step="0.0001" value="0">
-        <label for="precisione">precisione decimale</label>
+        <label for="precisione">precisione decimale:</label>
         <input type="number" id="precisione" step="1" min="1" value="1" max="9">
+        <label for="method">metodo:</label>
+        <select id="method" required>
+          <option value="bisezione">bisezione</option>
+          <option value="secanti">secanti</option>
+        </select>
         <br>
-        <button onclick="bisezione()">metodo bisezione</button>
+        <button onclick="exec()">calcola</button>
     </div>
+    <span hidden>
+      <hr>
+      <label for="res">risultato: </label>
+      <input type="number" class="res" id="res" value="" readonly>
+      <br>
+      <label for="steps">passi: </label>
+      <input type="number" class="res" id="steps" value="" readonly>
+    </span>
     <hr>
-    <label for="res">risultato: </label>
-    <input type="number" class="res" id="res" value="" readonly hidden>
-    <br>
-    <label for="steps">passi: </label>
-    <input type="number" class="res" id="steps" value="" readonly hidden>
+    <input type="text" value="5Q ITS Buzzi 25/26" readonly>
   </main>
 
   <script src="libraries/bisezione_module.js"></script>

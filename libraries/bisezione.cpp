@@ -1,8 +1,23 @@
+/**
+* **************************************************************
+* * ▄█     █▄     ▄████████    ▄████████    ▄█   ▄█▄  ▄██████▄ *
+* *███     ███   ███    ███   ███    ███   ███ ▄███▀ ███    ███*
+* *███     ███   ███    ███   ███    █▀    ███▐██▀   ███    ███*
+* *███     ███   ███    ███   ███         ▄█████▀    ███    ███*
+* *███     ███ ▀███████████ ▀███████████ ▀▀█████▄    ███    ███*
+* *███     ███   ███    ███          ███   ███▐██▄   ███    ███*
+* *███ ▄█▄ ███   ███    ███    ▄█    ███   ███ ▀███▄ ███    ███*
+* * ▀███▀███▀    ███    █▀   ▄████████▀    ███   ▀█▀  ▀██████▀ *
+* *                                        ▀                   *
+* **************************************************************
+*/
+
 #include <string>
-#include "exprtk.hpp"       // Your math parser
-#include <emscripten/bind.h> // The Emscripten magic
+#include "exprtk.hpp"         // Function parser
+#include <emscripten/bind.h>  // WebAssembly tool
 #include <stdexcept>
 #include <cmath>
+#include <algorithm>
 
 using namespace emscripten;
 
@@ -72,42 +87,49 @@ class Interval{
         double b;
         const Function &f;
 
-        void is_not_unique_zero(double a, double b) const {  
-            if (f.evaluate(a) * f.evaluate(b) >= 0) throw std::runtime_error("Teorema di Bolzano non soddisfatto"); // I teorema
-            else { 
-                double epsilon = 1e-9;
-                int n = 100;
+        bool is_unique_zero(double a, double b) const {  
+            // I Teorema -> esistenza dello zero
+            if (f.evaluate(a) * f.evaluate(b) >= 0) throw std::runtime_error("Teorema di Bolzano non soddisfatto"); 
+    
+            double epsilon = 1e-9;
+            int n = 500;
 
-                int step = n;
-                double d = (std::abs(b - a) -2 * epsilon)/step;
-                double x0 = a + epsilon;
+            bool isUnique = true;
 
-                // II teorema -> monotonicità
-                int value = (f.evaluate_der1(x0)>0) ? 1 : -1;
-                while(step-- > 0){
-                    x0+=d;
-                    if(value*f.evaluate_der1(x0) <= 0) throw std::runtime_error("Teorema della monotonicità non soddisfatto");
-                }
-                
-                step = n;
-                x0 = a + epsilon;
-                // III teorema -> concavità
-                value = (f.evaluate_der2(x0)>=0) ? 1 : -1;
-                while(step-- > 0){
-                    x0+=d;
-                    if(value*f.evaluate_der2(x0) < 0) throw std::runtime_error("Teorema della concavità non soddisfatto");
-                }  
+            int step = n;
+
+            //The use of max() rapresents the case in which epsilon < b - a. 
+            //Thus is better to just check at the single point a
+            double d = std::max((std::abs(b - a) - 2 * epsilon)/step, 0.0);
+            double x0 = a + epsilon;
+
+            // II teorema -> monotonicità
+            int value = (f.evaluate_der1(x0)>0) ? 1 : -1;
+            while(step-- > 0 && isUnique){
+                x0+=d;
+                if(value*f.evaluate_der1(x0) <= 0) isUnique = false;
             }
+            if(isUnique) return true;
+
+            step = n;
+            x0 = a + epsilon;
+            // III teorema -> concavità
+            value = (f.evaluate_der2(x0)>=0) ? 1 : -1;
+            while(step-- > 0){
+                x0+=d;
+                if(value*f.evaluate_der2(x0) < 0) return false;    
+            } 
+            return true; 
         }
 
     public:
-        Interval(Function &f_ref, double x1, double x2) : f(f_ref){
+        Interval(const Function &f_ref, double x1, double x2) : f(f_ref){
             if(x1 > x2) std::swap(x1, x2);
 
             this->a = x1;
             this->b = x2;
 
-            this->is_not_unique_zero(a, b);
+            if(!this->is_unique_zero(a, b)) throw std::runtime_error("Impossibile dimostrare l'unicità dello zero");
         }
 
         double get_a() const{
@@ -139,6 +161,12 @@ class Interval{
             if(c>a && c<b) b = c;
             else throw std::runtime_error("valore fuori dall'intervallo");
         }
+
+        double shrink(double c){
+            double f_c = f.evaluate(c);
+            (f_c * evaluate_a() > 0) ? set_a(c) : set_b(c);
+            return f_c;
+        }
 };
 
 struct Result{
@@ -163,28 +191,60 @@ double round_value(double value, int approx) {
  * @param a an extreme of the interval [a;b]
  * @param b the other extreme of the interval [a;b]
  * @param approx the number of decimals to look for
+ * @throw throws runtime_error if the iterations surpass a certain threshold to prevent stalling
  *  */
 Result bisezione(std::string expression, double a, double b, int approx){
 
-    Function func(expression);
-    Interval intervallo(func, a, b);
-     
-    double mid;
-    int iterations = 0;
+    Function f(expression);
+    Interval inter(f, a, b);
+    
+    const int MAX_ITER = 100;
+    double x;
+    int iter = 0;
     do {
-        iterations++;
-        mid = (intervallo.get_b() + intervallo.get_a()) / 2;
-        double f_mid = func.evaluate(mid);
-        if(f_mid == 0) break;
-        
-        (f_mid * intervallo.evaluate_a() > 0) ? intervallo.set_a(mid) : intervallo.set_b(mid);
+        if(iter++ > MAX_ITER) throw std::runtime_error("numero di iterazioni massime superato! :/");
+        x = (inter.get_b() + inter.get_a()) / 2;
+     
+        if(inter.shrink(x) == 0) break;        
     }while(
-        round_value(intervallo.get_a(), approx) 
+        round_value(inter.get_a(), approx) 
         != 
-        round_value(intervallo.get_b(), approx)
-    ); 
+        round_value(inter.get_b(), approx)
+    );
+    return {round_value(x, approx), iter};
+}
 
-    return {round_value(mid, approx), iterations};
+/**
+ * Secants method of numeric analysis
+ * @param expression a string representing the function
+ * @param a an extreme of the interval [a;b]
+ * @param b the other extreme of the interval [a;b]
+ * @param approx the number of decimals to look for
+ * @throw throws runtime_error if the iterations surpass a certain threshold to prevent stalling
+ *  */
+Result secanti(std::string expression, double a, double b, int approx){
+
+    Function f(expression);
+    Interval inter(f, a, b);
+
+    const int MAX_ITER = 1000;
+    int iter = 0;
+    double x;
+    do{
+        if(iter++ > MAX_ITER) throw std::runtime_error("numero di iterazioni massime superato! :/");
+
+        double fa = inter.evaluate_a();
+        double fb = inter.evaluate_b();
+
+        x = (fa*inter.get_b() - fb*inter.get_a()) / (fa - fb);
+
+        if(inter.shrink(x) == 0) break;
+    }while(
+        round_value(inter.get_a(), approx) 
+        != 
+        round_value(inter.get_b(), approx)
+    ); 
+    return {round_value(x, approx), iter};
 }
 
 // --- THE EMSCRIPTEN BRIDGE ---
@@ -194,4 +254,5 @@ EMSCRIPTEN_BINDINGS(bisezione_module) {
     .field("steps", &Result::iterations);
 
     function("bisezione", &bisezione);
+    function("secanti", &secanti);
 }
