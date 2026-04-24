@@ -31,8 +31,8 @@ input[type="number"] {
 }
 
 input.res {
-    -webkit-appearance: none;
-    -moz-appearance: textfield;
+    -webkit-appearance: none;   /*For Chrome*/
+    -moz-appearance: textfield; /*For Firefox*/
     font-size: 1.5rem;
 }
 
