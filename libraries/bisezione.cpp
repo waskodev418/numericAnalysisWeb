@@ -164,7 +164,7 @@ class Interval{
 
         double shrink(double c){
             double f_c = f.evaluate(c);
-            (f_c * evaluate_a() > 0) ? set_a(c) : set_b(c);
+            (f_c * f.evaluate(a) > 0) ? set_a(c) : set_b(c);
             return f_c;
         }
 };
@@ -193,7 +193,7 @@ double round_value(double value, int approx) {
  * @param approx the number of decimals to look for
  * @throw throws runtime_error if the iterations surpass a certain threshold to prevent stalling
  *  */
-Result bisezione(std::string expression, double a, double b, int approx){
+Result bisezione(std::string expression, double a, double b, int approx = 9){
 
     Function f(expression);
     Interval inter(f, a, b);
@@ -222,29 +222,32 @@ Result bisezione(std::string expression, double a, double b, int approx){
  * @param approx the number of decimals to look for
  * @throw throws runtime_error if the iterations surpass a certain threshold to prevent stalling
  *  */
-Result secanti(std::string expression, double a, double b, int approx){
+Result secanti(std::string expression, double a, double b, int approx = 9){
 
     Function f(expression);
     Interval inter(f, a, b);
 
     const int MAX_ITER = 1000;
-    int iter = 0;
-    double x;
+    int iter = 0;  
+    double x = inter.get_a();
+    double x2 = inter.get_b();
+    
     do{
         if(iter++ > MAX_ITER) throw std::runtime_error("numero di iterazioni massime superato! :/");
 
-        double fa = inter.evaluate_a();
-        double fb = inter.evaluate_b();
+        double fx = f.evaluate(x);
+        double fx2 = f.evaluate(x2);
 
-        x = (fa*inter.get_b() - fb*inter.get_a()) / (fa - fb);
+        double denom = fx - fx2;
+        if(denom == 0) throw std::runtime_error("limite di convergenza"); 
 
-        if(inter.shrink(x) == 0) break;
+        double temp = x2;
+        x2 = (fx*x2 - fx2*x) / (denom);
+        x = temp;
     }while(
-        round_value(inter.get_a(), approx) 
-        != 
-        round_value(inter.get_b(), approx)
+        round_value(std::abs(x - x2), approx) != 0.0
     ); 
-    return {round_value(x, approx), iter};
+    return {round_value(x2, approx), iter};
 }
 
 // --- THE EMSCRIPTEN BRIDGE ---
