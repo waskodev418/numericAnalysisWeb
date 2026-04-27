@@ -1,15 +1,12 @@
 /**
-* **************************************************************
-* * ▄█     █▄     ▄████████    ▄████████    ▄█   ▄█▄  ▄██████▄ *
-* *███     ███   ███    ███   ███    ███   ███ ▄███▀ ███    ███*
-* *███     ███   ███    ███   ███    █▀    ███▐██▀   ███    ███*
-* *███     ███   ███    ███   ███         ▄█████▀    ███    ███*
-* *███     ███ ▀███████████ ▀███████████ ▀▀█████▄    ███    ███*
-* *███     ███   ███    ███          ███   ███▐██▄   ███    ███*
-* *███ ▄█▄ ███   ███    ███    ▄█    ███   ███ ▀███▄ ███    ███*
-* * ▀███▀███▀    ███    █▀   ▄████████▀    ███   ▀█▀  ▀██████▀ *
-* *                                        ▀                   *
-* **************************************************************
+* .------..------..------..------..------.
+* |W.--. ||A.--. ||S.--. ||K.--. ||O.--. |
+* | :/\: || (\/) || :/\: || :/\: || :/\: |
+* | :\/: || :\/: || :\/: || :\/: || :\/: |
+* | '--'W|| '--'A|| '--'S|| '--'K|| '--'O|
+* `------'`------'`------'`------'`------'
+* 
+* Code written by waskodev418 (github)
 */
 
 #include <string>
@@ -26,8 +23,6 @@ class Function {
         mutable double x;
         exprtk::symbol_table<double> symbol_table;
         exprtk::expression<double> expression;
-        exprtk::expression<double> der1;
-        exprtk::expression<double> der2;
         exprtk::parser<double> parser;
 
     public:
@@ -36,25 +31,15 @@ class Function {
             symbol_table.add_constants();
             
             expression.register_symbol_table(symbol_table);
-            der1.register_symbol_table(symbol_table);
-            der2.register_symbol_table(symbol_table);
 
             if (!parser.compile(func_str, expression)) {
                 throw std::runtime_error("funzione non valida :/");
             }
-
-            if(!exprtk::derivative<double>(expression, "x", der1)){
-                throw std::runtime_error("derivata prima non valida :/");
-            }
-
-            if(!exprtk::derivative<double>(der1, "x", der2)){
-                throw std::runtime_error("derivata seconda non valida :/");
-            }
         }
 
-        /*
-            calculate f(x0)
-            @param new_x x0   
+        /**
+        *   calculate f(x0)
+        *   @param new_x x0   
         */
         double evaluate(double new_x) const {
             x = new_x;
@@ -62,22 +47,20 @@ class Function {
             return (!std::isnan(res)) ? res : throw std::domain_error("dominio funzione non valido") ;
         }
 
-        /*
-            calculate f'(x0)
-            @param new_x x0   
-        */
+        /**
+         * Calcola f'(x) numericamente (Differenza centrale)
+         */
         double evaluate_der1(double new_x) const {
-            x = new_x;
-            return der1.value();
+            const double h = 1e-7;
+            return (evaluate(new_x + h) - evaluate(new_x - h)) / (2.0 * h);
         }
 
-        /*
-            calculate f''(x0)
-            @param new_x x0   
-        */
+        /**
+         * Calcola f''(x) numericamente
+         */
         double evaluate_der2(double new_x) const {
-            x = new_x;
-            return der2.value();
+            const double h = 1e-5;
+            return (evaluate(new_x + h) - 2.0 * evaluate(new_x) + evaluate(new_x - h)) / (h * h);
         }
 };
 
@@ -250,6 +233,41 @@ Result secanti(std::string expression, double a, double b, int approx = 9){
     return {round_value(x2, approx), iter};
 }
 
+/**
+ * Tangents method of numeric analysis
+ * @param expression a string representing the function
+ * @param a an extreme of the interval [a;b]
+ * @param b the other extreme of the interval [a;b]
+ * @param approx the number of decimals to look for
+ * @throw throws runtime_error if the iterations surpass a certain threshold to prevent stalling
+ *  */
+Result tangenti(std::string expression, double a, double b, int approx = 9){
+    Function f(expression);
+    Interval inter(f, a, b);
+
+    const int MAX_ITER = 1000;
+    int iter = 0;
+
+    //Fourier's criteria
+    double x0 = (f.evaluate_der2(inter.get_a()) * inter.evaluate_a() > 0) ? inter.get_a() : inter.get_b();
+    double x1;
+    double diff;
+    do{
+        if(iter++ > MAX_ITER) throw std::runtime_error("numero di iterazioni massime superato! :/");
+
+        double der1 = f.evaluate_der1(x0);
+        if(der1 == 0) throw std::runtime_error("limite di convergenza");
+        
+        x1 = x0 - (f.evaluate(x0) / der1);
+        diff = std::abs(x1 - x0);
+        x0 = x1;
+    }while(
+        round_value(diff, approx) != 0.0
+    );
+    
+    return {round_value(x1, approx), iter};
+}
+
 // --- THE EMSCRIPTEN BRIDGE ---
 EMSCRIPTEN_BINDINGS(bisezione_module) {
     value_object<Result>("ResultSet")
@@ -258,4 +276,5 @@ EMSCRIPTEN_BINDINGS(bisezione_module) {
 
     function("bisezione", &bisezione);
     function("secanti", &secanti);
+    function("tangenti", &tangenti);
 }
